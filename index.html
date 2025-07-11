@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estimación de Costos - Cloudflare Workers</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 2rem; background: #f9f9f9; color: #333; line-height: 1.6; position: relative; }
+    h1, h2 { color: #ed7f2e; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { border: 1px solid #ccc; padding: 0.75rem; text-align: left; position: relative; }
+    th { background: #eee; }
+    a { color: #0077cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .info-icon { cursor: pointer; margin-left: 0.5rem; color: #0077cc; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+    .modal-content { background: #fff; padding: 1.5rem; border-radius: 4px; max-width: 600px; text-align: left; position: relative; }
+    .modal-close { position: absolute; top: 0.5rem; right: 0.5rem; cursor: pointer; font-size: 1.2rem; }
+    /* Acordeón */
+    #detalles { margin-top: 2rem; }
+    .accordion-item { border: 1px solid #ccc; border-radius: 4px; margin-bottom: 0.5rem; background: #fff; }
+    .accordion-header { background: #eee; padding: 0.75rem; cursor: pointer; width: 100%; text-align: left; border: none; outline: none; font-size: 1rem; }
+    .accordion-content { display: none; padding: 0.75rem; border-top: 1px solid #ccc; }
+    /* Scroll Top */
+    #scrollTop { position: fixed; bottom: 1rem; right: 1rem; padding: 0.5rem 0.75rem; background: #ed7f2e; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: none; }
+  </style>
+</head>
+<body>
+  <h1>Estimación de Costos para Cloudflare Workers</h1>
+  <p>Comparativa detallada de los planes disponibles y sus características, con enlaces directos a la documentación oficial.</p>
+
+  <h2>Comparativa de Planes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Característica</th>
+        <th><a href="https://developers.cloudflare.com/workers/platform/pricing/#free-tier" target="_blank">Plan Gratuito</a></th>
+        <th><a href="https://developers.cloudflare.com/workers/platform/pricing/#paid-tier" target="_blank">Plan 5 USD</a></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Solicitudes mensuales<span class="info-icon" data-modal="m-solicitudes-m">ℹ️</span></td><td>Hasta 10 M*</td><td>50 M</td></tr>
+      <tr><td>Solicitudes diarias<span class="info-icon" data-modal="m-solicitudes-d">ℹ️</span></td><td>100 000</td><td>Ilimitado</td></tr>
+      <tr><td>Tiempo de ejecución por petición<span class="info-icon" data-modal="m-tiempo">ℹ️</span></td><td>Máx. 30 s de CPU</td><td>Máx. 30 s de CPU</td></tr>
+      <tr><td>Costo por millón extra<span class="info-icon" data-modal="m-costo">ℹ️</span></td><td>No disponible (rate limit)</td><td>0.50 USD</td></tr>
+      <tr><td>Concurrencia<span class="info-icon" data-modal="m-conc">ℹ️</span></td><td>Limitada (<em>throttling</em>)</td><td>Ilimitada</td></tr>
+      <tr><td>Soporte SLA<span class="info-icon" data-modal="m-sla">ℹ️</span></td><td>No incluido</td><td>No incluido</td></tr>
+      <tr><td>Durable Objects<span class="info-icon" data-modal="m-durable">ℹ️</span></td><td>Limitado</td><td>Completo</td></tr>
+      <tr><td>Workers KV y R2<span class="info-icon" data-modal="m-kv">ℹ️</span></td><td>Disponible (costo aparte)</td><td>Disponible (costo aparte)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Sobreuso y Monitoreo</h2>
+  <p>En el plan gratuito, si superás los límites, recibirás <strong>HTTP 429</strong> y se interrumpirá el servicio. No hay aviso automático, pero podés configurar <a href="https://developers.cloudflare.com/workers/analytics/" target="_blank">Workers Analytics</a> para recibir alertas.</p>
+
+  <h2>Escenario de Uso: 10 000 Usuarios</h2>
+  <p>Si 10 000 turistas generan 20 requests c/u al mes, total = <strong>200 000 solicitudes</strong>. Ambos planes lo cubren, aunque el gratuito podría acercarse al límite diario en picos.</p>
+
+  <!-- Modals -->
+  <div id="m-solicitudes-m" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Solicitudes Mensuales</h3><p>Invocaciones totales al Worker en un mes. Clave para elegir plan.</p><p><a href="#detalle-solicitudes-m">Más info</a></p></div></div>
+  <div id="m-solicitudes-d" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Solicitudes Diarias</h3><p>Cada vez que un usuario carga contenido o interactúa, el navegador envía una solicitud al servidor. El plan gratuito permite hasta 100 000 solicitudes por día.</p><p><a href="#detalle-solicitudes-d">Más info</a></p></div></div></div></div>
+  <div id="m-tiempo" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Tiempo de Ejecución</h3><p>CPU máximo por petición: 30 s. Excederlo aborta la ejecución.</p><p><a href="#detalle-tiempo">Más info</a></p></div></div>
+  <div id="m-costo" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Costo Extra</h3><p>0.50 USD por millón adicional en plan pago; sin excesos en gratuito.</p><p><a href="#detalle-costo">Más info</a></p></div></div>
+  <div id="m-conc" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Concurrencia</h3><p>Workers simultáneos; gratuito limita para evitar sobrecarga.</p><p><a href="#detalle-conc">Más info</a></p></div></div>
+  <div id="m-sla" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" data-modal-close>&times;</span>
+      <h3>Soporte SLA</h3>
+      <p>El SLA (Acuerdo de Nivel de Servicio) garantiza la disponibilidad mínima del servicio y ofrece compensaciones si no se cumple. No está incluido en los planes Gratuito ni en el de 5 USD.</p>
+      <p><a href="#detalle-sla">Ver detalles del SLA</a></p>
+    </div>
+  </div></div></div></div>
+  <div id="m-durable" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Durable Objects</h3><p>Framework para mantener datos y estado sincronizados en tiempo real con baja latencia. Incluido en el plan de 5 USD y disponible limitadamente en el gratuito.</p><p><a href="#detalle-durable">Ver detalles</a></p></div></div></div>
+  <div id="m-kv" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Workers KV y R2</h3><p>Almacenamiento distribuido: <strong>KV</strong> para datos clave-valor ligeros y <strong>R2</strong> para archivos y objetos pesados.</p><p><a href="#detalle-kv">Ver detalles</a></p></div></div></div>
+
+  <!-- Sección de detalles en acordeón -->
+  <section id="detalles">
+    <h2>Detalles y Ejemplos por Característica</h2>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-solicitudes-m">Solicitudes Mensuales</button>
+      <div id="detalle-solicitudes-m" class="accordion-content">
+        <p><strong>Ejemplo práctico:</strong> Imaginá que tu plataforma recibe 20 000 visitas al mes y cada visita genera 5 llamadas a la API para mostrar ofertas, detalles de cupones y actualizaciones. Esto suma un total de <strong>100 000 solicitudes mensuales</strong>.</p>
+        <p><strong>Plan Gratuito:</strong> Cubriría estas 100 000 solicitudes sin costo. Si en un mes tus solicitudes aumentan hasta 8 M, seguirías dentro del límite gratuito. Sin embargo, superar las 10 M mensuales te dejaría sin servicio adicional y con respuestas HTTP 429.</p>
+        <p><strong>Plan de 5 USD:</strong> Permite hasta 50 M de solicitudes al mes. En este escenario de 100 000, apenas usarías el 0.2 % de tu cuota y tendrías margen para picos de tráfico sin interrupciones, recibiendo además procesamiento ilimitado diario.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-solicitudes-d">Solicitudes Diarias</button>
+      <div id="detalle-solicitudes-d" class="accordion-content">
+        <p>Una "solicitud" es cuando tu navegador o app pide información al servidor —por ejemplo, al abrir la página de ofertas o al hacer clic en un cupón.</p>
+        <p>En el plan gratuito, Cloudflare deja pasar hasta <strong>100 000 solicitudes al día</strong>. Si recibís más peticiones, las extras no se procesan y el usuario verá un error.</p>
+        <p><strong>¿Por qué usar Workers Analytics?</strong></p>
+        <ul>
+          <li><strong>Visibilidad:</strong> Sabés cuántas solicitudes hacés cada día y podés identificar picos.</li>
+          <li><strong>Alertas tempranas:</strong> Configurás avisos antes de llegar al límite, evitando interrupciones.</li>
+          <li><strong>Planificación:</strong> Con datos históricos, podés decidir si necesitás pasar al plan de pago en temporadas altas.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-tiempo">Tiempo de Ejecución</button>
+      <div id="detalle-tiempo" class="accordion-content">
+        <p><strong>¿Qué es CPU?</strong> Es el “cerebro” que procesa las instrucciones de tu código. Cada vez que tu Worker corre, usa tiempo de CPU.</p>
+        <p><strong>Límite de tiempo:</strong> Cloudflare permite hasta <strong>30 segundos de CPU real</strong> por petición. Si tu función tarda más, se detiene y no devuelve resultado.</p>
+        <p><strong>Ejemplo simple:</strong> Imaginá que tu Worker comprueba disponibilidad de cupones y tarda 1 segundo de CPU por usuario. Con 60 usuarios usando el servicio al mismo tiempo, consumes 60 segundos de CPU. Cloudflare mide este tiempo y asegura que cada petición no supere 30 segundos.</p>
+        <p><strong>¿Por qué importa?</strong> Evitás bloqueos inesperados: si una petición tarda demasiado, el usuario recibe un mensaje de error. Controlar y optimizar tu código para que corra rápido mejora la experiencia y ahorra recursos.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-costo">Costo Extra</button>
+      <div id="detalle-costo" class="accordion-content">
+        <p>Ejemplo de uso: durante una promoción de verano, tu plataforma recibe 60 M de solicitudes en un mes. En el plan de pago, esto equivale a 5 USD por los primeros 50 M y 0.5 USD × 10 M adicionales = 5 USD, totalizando <strong>10 USD</strong>. Esto permite atender picos sin interrupciones.</p>
+        <p>Otro caso práctico: si lanzas una campaña flash de un fin de semana generando 5 M de solicitudes en 3 días, el costo extra sería 0.5 USD × 5 = <strong>2.5 USD</strong>. Ideal para escalar solo cuando sea necesario.</p>
+        <h4>Alternativas para gestionar costos extras:</h4>
+        <ul>
+          <li><strong>Límites de facturación:</strong> Configura <em>Budget Alerts</em> en Cloudflare para recibir notificaciones cuando el consumo extra alcance un umbral definido.</li>
+          <li><strong>Pago anticipado:</strong> Contrata un prepago de solicitudes extra para usar solo cuando lo necesites y evitar cargos inesperados.</li>
+          <li><strong>Optimización de código:</strong> Reduce llamadas combinando funciones o cacheando resultados para minimizar peticiones.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-conc">Concurrencia</button>
+      <div id="detalle-conc" class="accordion-content">
+        <p><strong>¿Qué es concurrencia?</strong> Es la capacidad de atender múltiples peticiones al mismo tiempo. Si muchos usuarios interactúan simultáneamente, el sistema debe procesar todas esas solicitudes sin demora.</p>
+        <p><strong>Ejemplo práctico:</strong> Imaginá un evento especial donde 500 usuarios hacen clic en diferentes cupones al mismo tiempo. En el plan gratuito, Cloudflare puede ralentizar o rechazar algunas de esas peticiones para proteger la infraestructura. En el plan de 5 USD, no hay límite de concurrencia, por lo que las 500 peticiones se procesan sin retrasos.</p>
+        <p><strong>Importancia:</strong> Una alta concurrencia garantiza que durante picos de tráfico (promociones, lanzamientos) todos los usuarios reciban respuestas rápidas y consistentes, mejorando la experiencia y evitando pérdidas por tiempos de espera o errores.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-sla">Soporte SLA</button>
+      <div id="detalle-sla" class="accordion-content">
+        <p><strong>¿Qué es SLA?</strong> Un Acuerdo de Nivel de Servicio garantiza la disponibilidad mínima del servicio y compensa al cliente si no se cumple.</p>
+        <p><strong>Planes que incluyen SLA:</strong></p>
+        <ul>
+          <li><strong>Business:</strong> Incluye SLA del 100 % de uptime, desde <strong>200 USD/mes</strong> en EE. UU. según el plan de Business Service Level Agreement ([cloudflare.com](https://www.cloudflare.com/business-sla/?utm_source=chatgpt.com)).</li>
+          <li><strong>Enterprise:</strong> Ofrece SLA de 99.99 % con créditos de servicio por incumplimiento. Precios personalizados, típicamente entre <strong>5 000 USD y 20 000 USD/mes</strong> según volumen y regiones ([blog.blazingcdn.com](https://blog.blazingcdn.com/en-us/exploring-cloudflares-enterprise-plan-features-and-pricing?utm_source=chatgpt.com)).</li>
+        </ul>
+        <p><strong>Ejemplo para Jackson Hole, WY:</strong> Si tu proyecto tiene alto tráfico estacional y necesitas garantizar disponibilidad durante la temporada de verano, con un SLA 99.99 %, considerar un plan Enterprise con un costo base de unos <em>5 000 USD/mes</em> te protege de caídas y asegura continuidad, además de soporte 24/7.</p>
+        <p>Para más información y contratar, visitá la <a href="https://www.cloudflare.com/enterprise/" target="_blank">página de planes Enterprise</a> ([cloudflare.com](https://www.cloudflare.com/plans/enterprise/?utm_source=chatgpt.com)).</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-durable">Durable Objects</button>
+      <div id="detalle-durable" class="accordion-content">
+        <p><strong>¿Qué son Durable Objects?</strong> Son instancias que mantienen datos y estado (por ejemplo, sesiones de usuario o chats) de forma distribuida pero con consistencia inmediata en todos los datacenters.</p>
+        <p><strong>Latencia:</strong> Promedio <strong><50 ms</strong> de respuesta, lo cual significa que las actualizaciones de estado llegan casi instantáneamente al usuario.</p>
+        <p><strong>Uso práctico:</strong> Imaginá un sistema de chat en vivo donde varios turistas consultan ofertas y reciben mensajes de los comerciantes al instante. Con Durable Objects, cada mensaje se propaga en menos de 50 ms.</p>
+        <p><strong>Planes:</strong></p>
+        <ul>
+          <li><strong>Gratuito:</strong> Pruebas limitadas, recomendable solo para desarrollo.</li>
+          <li><strong>5 USD:</strong> Acceso completo sin límites de instancias y con la misma latencia.</li>
+        </ul>
+        <p><strong>Costo adicional:</strong> No hay cargo extra por uso dentro del plan de 5 USD. En gratuito, la capacidad es muy limitada.</p>
+        <p><strong>Beneficios para tu proyecto:</strong> Asegura que ofertas y mensajes se compartan en tiempo real sin retrasos, mejorando la interacción turista-comerciante y la experiencia de usuario.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" data-target="detalle-kv">Workers KV y R2</button>
+      <div id="detalle-kv" class="accordion-content">
+        <h4>¿Qué es Workers KV?</h4>
+        <p>Un almacén de pares clave-valor distribuido globalmente, ideal para datos pequeños como configuraciones o contadores.</p>
+        <h4>Ejemplo KV</h4>
+        <p>Guardá cuántas veces un turista revisa un cupón con la clave <code>visitas_cupon123</code>. Cada lectura/escritura aporta una respuesta en ~0.5 ms.</p>
+        <h4>¿Qué es R2?</h4>
+        <p>Un almacenamiento de objetos similar a S3 sin cargos de egress, perfecto para servir imágenes, videos o PDFs.</p>
+        <h4>Ejemplo R2</h4>
+        <p>Subí imágenes de tiendas y cupones a R2 y servilas directamente en tu web, reduciendo latencia y costos de salida.</p>
+        <h4>Costos</h4>
+        <ul>
+          <li><strong>KV:</strong> 0.50 USD por millón de operaciones (lectura y escritura).</li>
+          <li><strong>R2 almacenamiento:</strong> 0.015 USD por GB al mes.</li>
+          <li><strong>R2 operaciones:</strong> 0.05 USD por cada 10 000 operaciones PUT/GET.</li>
+        </ul>
+        <h4>Disponibilidad en planes</h4>
+        <p>Ambos servicios están disponibles en planes Gratuito y de 5 USD, con costos de uso aparte.</p>
+        <h4>Beneficios para tu proyecto</h4>
+        <p>Usá KV para guardar conteos de interacciones de usuarios y R2 para servir imágenes de cupones con alta disponibilidad y bajo costo.</p>
+        <h4>Documentación oficial</h4>
+        <ul>
+          <li><a href="https://developers.cloudflare.com/workers/runtime-apis/kv/" target="_blank">Workers KV Docs</a></li>
+          <li><a href="https://developers.cloudflare.com/r2/" target="_blank">Cloudflare R2 Docs</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <button id="scrollTop">↑ Inicio</button>
+
+  <script>
+    // Acordeón
+    document.querySelectorAll('.accordion-header').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const content = document.getElementById(btn.dataset.target);
+        const open = content.style.display === 'block';
+        document.querySelectorAll('.accordion-content').forEach(c => c.style.display = 'none');
+        if (!open) content.style.display = 'block';
+      });
+    });
+    // Modales con redirección al acordeón
+    document.querySelectorAll('.modal-content a').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const targetId = link.getAttribute('href').substring(1);
+        // cerrar modal correspondiente
+        link.closest('.modal').style.display = 'none';
+        // abrir acordeón
+        const header = document.querySelector(`.accordion-header[data-target="${targetId}"]`);
+        header.click();
+        document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+    // Scroll Top
+    const scrollBtn = document.getElementById('scrollTop');
+    window.addEventListener('scroll', () => { scrollBtn.style.display = window.scrollY > 200 ? 'block' : 'none'; });
+    scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    // Modales show/hide
+    document.querySelectorAll('.info-icon').forEach(icon => icon.addEventListener('click', () => document.getElementById(icon.dataset.modal).style.display = 'flex'));
+    document.querySelectorAll('[data-modal-close]').forEach(close => close.addEventListener('click', () => close.closest('.modal').style.display = 'none'));
+    window.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; });
+  </script>
+</body>
+</html>
