@@ -50,12 +50,7 @@
     </tbody>
   </table>
 
-  <h2>Sobreuso y Monitoreo</h2>
-  <p>En el plan gratuito, si superás los límites, recibirás <strong>HTTP 429</strong> y se interrumpirá el servicio. No hay aviso automático, pero podés configurar <a href="https://developers.cloudflare.com/workers/analytics/" target="_blank">Workers Analytics</a> para recibir alertas.</p>
-
-  <h2>Escenario de Uso: 10 000 Usuarios</h2>
-  <p>Si 10 000 turistas generan 20 requests c/u al mes, total = <strong>200 000 solicitudes</strong>. Ambos planes lo cubren, aunque el gratuito podría acercarse al límite diario en picos.</p>
-
+  <!-- Modals -->
   <!-- Modals -->
   <div id="m-solicitudes-m" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Solicitudes Mensuales</h3><p>Invocaciones totales al Worker en un mes. Clave para elegir plan.</p><p><a href="#detalle-solicitudes-m">Más info</a></p></div></div>
   <div id="m-solicitudes-d" class="modal"><div class="modal-content"><span class="modal-close" data-modal-close>&times;</span><h3>Solicitudes Diarias</h3><p>Cada vez que un usuario carga contenido o interactúa, el navegador envía una solicitud al servidor. El plan gratuito permite hasta 100 000 solicitudes por día.</p><p><a href="#detalle-solicitudes-d">Más info</a></p></div></div></div></div>
@@ -183,7 +178,49 @@
         </ul>
       </div>
     </div>
+
+  <h2>Sobreuso y Monitoreo</h2>
+  <p>En el plan gratuito, si superás los límites, recibirás <strong>HTTP 429</strong> y se interrumpirá el servicio. No hay aviso automático, pero podés configurar <a href="https://developers.cloudflare.com/workers/analytics/" target="_blank">Workers Analytics</a> para recibir alertas.</p>
+
+  <h2>Escenario de Uso: 10 000 Usuarios</h2>
+  <p>Si 10 000 turistas generan 20 requests c/u al mes, total = <strong>200 000 solicitudes</strong>. Ambos planes lo cubren, aunque el gratuito podría acercarse al límite diario en picos.</p>
+
+
+  <!-- Sección de Preguntas Frecuentes -->
+  <section id="faq" style="margin-top:2rem;">
+    <h2>Preguntas Frecuentes</h2>
+    <div style="background:#fff; border:1px solid #ccc; border-radius:4px; padding:1rem 1.5rem; margin:1rem 0;">
+      <div style="margin-bottom:1.2em;"><strong>¿Cuál es la diferencia de costo entre el plan Gratuito y el plan de 5 USD?</strong><br>El plan Gratuito permite hasta <b>10 millones de solicitudes al mes</b> y <b>100 000 solicitudes diarias</b> sin cargo. El plan de <b>5 USD</b> otorga <b>50 millones de solicitudes mensuales</b> sin límite diario; cada millón adicional cuesta <b>0,50 USD</b>.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Debo registrar una tarjeta de crédito para usar el plan Gratuito?</strong><br>Sí. Cloudflare solicita un método de pago incluso en el plan gratuito, pero no se te cobrará a menos que superes los límites o cambies de plan.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Qué sucede si excedo los límites del plan Gratuito?</strong><br>Las solicitudes adicionales se bloquean con errores <b>HTTP 429</b> y no generan costos sorpresa. Puedes cambiar al plan de 5 USD en cualquier momento para evitar la interrupción.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Puedo configurar alertas antes de alcanzar los límites?</strong><br>Claro. Con <b>Workers Analytics</b> y las <b>Budget Alerts</b> recibirás correos o webhooks cuando el consumo se acerque al umbral que definas.</div>
+      <div style="margin-bottom:1.2em;"><strong>Si durante una promoción recibo 5 millones de solicitudes extra, ¿cuánto pagaría en el plan de 5 USD?</strong><br>El exceso sería <b>2,5 USD</b>: 5 millones × 0,50 USD / millón.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Existen paquetes prepagos para picos previstos?</strong><br>Sí. El soporte comercial de Cloudflare ofrece paquetes de solicitudes prepagas y contratos Enterprise con precios por volumen.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Qué significa “< 50 ms” de latencia en Durable Objects?</strong><br>Es el tiempo promedio que tarda en propagarse una actualización a todos los centros de datos de Cloudflare: prácticamente instantáneo para el usuario.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Cómo garantizo que mis Workers no superen los 30 segundos de CPU por petición?</strong><br>Optimiza el código, usa caché en respuestas externas y divide procesos largos en llamadas asíncronas más cortas.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Cuándo debería usar Workers KV y cuándo R2?</strong><br><b>KV</b>: datos pequeños y rápidos (configuraciones, contadores).<br><b>R2</b>: archivos grandes (imágenes, PDFs) sin cargos por egreso.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Cuáles son los costos específicos de KV y R2?</strong><br><b>KV</b>: 0,50 USD por millón de operaciones.<br><b>R2</b>: 0,015 USD por GB‑mes de almacenamiento + 0,05 USD por cada 10 000 operaciones PUT/GET.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿KV y R2 vienen incluidos en el plan de 5 USD?</strong><br>Están disponibles en todos los planes, pero se facturan aparte según uso.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Qué es un SLA y por qué me convendría contratarlo?</strong><br>Un <b>Acuerdo de Nivel de Servicio</b> garantiza cierto porcentaje de disponibilidad (por ej. 99,99 %). Si Cloudflare falla, recibes créditos; esencial si la caída implica pérdida de ingresos.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Qué planes ofrecen SLA?</strong><br><b>Business</b>: 100 % de uptime, desde 200 USD/mes.<br><b>Enterprise</b>: 99,99 % de uptime, precios personalizados (≈5 000–20 000 USD/mes en EE. UU.).</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Necesito un SLA para un proyecto turístico en Jackson Hole?</strong><br>Si la plataforma genera ingresos directos o afecta la reputación en temporada alta, un SLA brinda respaldo y soporte 24/7.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Cómo puedo ver el uso en tiempo real?</strong><br>El panel de <b>Workers Analytics</b> muestra gráficas en vivo y registros detallados sin costo adicional.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Puedo exportar métricas a otras herramientas?</strong><br>Sí. Con <b>GraphQL API</b> o <b>Logpush</b> puedes enviar datos a sistemas como Datadog o Splunk (Logpush puede tener tarifas).</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Los Workers cumplen con GDPR o HIPAA?</strong><br>Con configuraciones adecuadas y planes Business/Enterprise, puedes cumplir requisitos de privacidad; debes limitar regiones y cifrar datos sensibles.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿El plan Gratuito incluye protección DDoS?</strong><br>Sí. Cloudflare provee mitigación DDoS en todos los planes.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Puedo probar Durable Objects en el plan Gratuito?</strong><br>Sí, pero con límites de concurrencia y almacenamiento aptos solo para desarrollo.</div>
+      <div style="margin-bottom:1.2em;"><strong>¿Cuánto tarda en desplegarse un cambio de código?</strong><br>Menos de 30 segundos en todo el mundo gracias a la red de Cloudflare.</div>
+    </div>
   </section>
+
+
+  <footer style="margin-top:2.5rem; background:#eee; color:#333; border-top:1px solid #ccc; padding:1.2rem 0 1.2rem 0; text-align:center; font-size:1rem;">
+    Creado por <strong>Alemar Dev's</strong> &mdash; 
+    <a href="https://subscription.menbru.com/" target="_blank">Suscripciones</a> |
+    <a href="https://menbru.menbru.workers.dev/" target="_blank">Menbru</a> |
+    <a href="https://dash.cloudflare.com/17be8512c723a61a067feced2fa8e462/welcome" target="_blank">Cloudflare</a><br>
+    <span style="font-size:0.95em; color:#666;">Información actualizada al 11 de julio de 2025</span>
+  </footer>
 
   <button id="scrollTop">↑ Inicio</button>
 
